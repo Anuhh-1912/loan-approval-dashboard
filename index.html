@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+<title>AI Loan Approval Dashboard</title>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+
+body{
+margin:0;
+font-family:Arial;
+
+/* HD COINS + MONEY NOTES BACKGROUND */
+
+background:url("https://images.unsplash.com/photo-1580519542036-c47de6196ba5?auto=format&fit=crop&w=1920&q=100");
+
+background-size:cover;
+background-position:center;
+
+height:100vh;
+display:flex;
+justify-content:center;
+align-items:center;
+}
+/* GLASS PANEL */
+
+.container{
+
+background:rgba(0,0,0,0.6);
+
+backdrop-filter:blur(6px);
+
+padding:40px;
+
+border-radius:15px;
+
+width:900px;
+
+display:flex;
+
+color:white;
+
+box-shadow:0 0 25px black;
+
+}
+
+/* LEFT PANEL */
+
+.left{
+
+width:40%;
+padding-right:25px;
+
+}
+
+/* RIGHT PANEL */
+
+.right{
+
+width:60%;
+text-align:center;
+
+}
+
+h1{
+
+color:#FFD700;
+margin-bottom:20px;
+
+}
+
+label{
+
+font-weight:bold;
+
+}
+
+input, select{
+
+width:100%;
+padding:10px;
+margin:8px 0 15px 0;
+border:none;
+border-radius:5px;
+
+}
+
+/* BUTTONS */
+
+button{
+
+width:100%;
+padding:12px;
+font-size:16px;
+border:none;
+border-radius:5px;
+cursor:pointer;
+
+}
+
+.check{
+
+background:#FFD700;
+margin-top:10px;
+
+}
+
+.reset{
+
+background:#777;
+color:white;
+margin-top:10px;
+
+}
+
+/* RESULT */
+
+.result{
+
+font-size:45px;
+margin-top:20px;
+font-weight:bold;
+
+}
+
+.history{
+
+margin-top:20px;
+font-size:18px;
+
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="container">
+
+<div class="left">
+
+<h1>Loan Application</h1>
+
+<label>Income ($)</label>
+<input id="income">
+
+<label>Credit Score</label>
+<input id="credit">
+
+<label>Loan Amount</label>
+<input id="loan">
+
+<label>Loan Purpose</label>
+<select id="purpose">
+  <option value="0.4">Home Loan</option>
+  <option value="0.35">Car Loan</option>
+  <option value="0.3">Education</option>
+  <option value="0.25">Business</option>
+  <option value="0.2">Personal</option>
+</select>
+
+<label>Employed (1/0)</label>
+<input id="job">
+
+<label>Married (1/0)</label>
+<input id="married">
+
+<label>Educated (1/0)</label>
+<input id="edu">
+
+<button class="check" onclick="predict()">CHECK ELIGIBILITY</button>
+
+<button class="reset" onclick="resetApp()">RESET</button>
+
+<div class="history">
+
+Approved: <span id="yes">0</span> |
+Declined: <span id="no">0</span>
+
+</div>
+
+</div>
+
+<div class="right">
+
+<h2>Prediction Result</h2>
+
+<div class="result" id="result">
+
+Awaiting Data
+
+</div>
+
+<canvas id="chart" width="350" height="220"></canvas>
+
+</div>
+
+</div>
+
+<script>
+
+let approveCount=0
+let declineCount=0
+let chart
+
+function predict(){
+
+let income=parseFloat(document.getElementById("income").value)
+let credit=parseFloat(document.getElementById("credit").value)
+let loan=parseFloat(document.getElementById("loan").value)
+let purpose=parseFloat(document.getElementById("purpose").value)
+let job=parseFloat(document.getElementById("job").value)
+let married=parseFloat(document.getElementById("married").value)
+let edu=parseFloat(document.getElementById("edu").value)
+
+if(isNaN(income)||isNaN(credit)||isNaN(loan)){
+alert("Enter valid numbers")
+return
+}
+
+let score=0
+
+score+=income/100000
+score+=credit/850
+score-=loan/100000
+score+=purpose   // Loan purpose influence
+score+=job*0.4
+score+=married*0.2
+score+=edu*0.3
+
+let prob=Math.min(Math.max(score/3,0),1)
+
+let approve=Math.round(prob*100)
+let decline=100-approve
+
+if(approve>50){
+
+document.getElementById("result").innerHTML="APPROVED ✅"
+
+approveCount++
+document.getElementById("yes").innerText=approveCount
+
+}else{
+
+document.getElementById("result").innerHTML="DECLINED ❌"
+
+declineCount++
+document.getElementById("no").innerText=declineCount
+
+}
+
+drawChart(approve,decline)
+
+}
+
+function drawChart(approve,decline){
+
+if(chart){
+chart.destroy()
+}
+
+let ctx=document.getElementById("chart").getContext("2d")
+
+chart=new Chart(ctx,{
+
+type:'bar',
+
+data:{
+labels:['Declined','Approved'],
+datasets:[{
+label:'Prediction Probability %',
+data:[decline,approve],
+backgroundColor:['#ff7f7f','#90ee90']
+}]
+},
+
+options:{
+plugins:{
+legend:{labels:{color:'white'}}
+},
+scales:{
+x:{ticks:{color:'white'}},
+y:{
+beginAtZero:true,
+max:100,
+ticks:{color:'white'}
+}
+}
+}
+
+})
+
+}
+
+function resetApp(){
+
+document.querySelectorAll("input").forEach(i=>i.value="")
+document.getElementById("purpose").selectedIndex=0
+
+document.getElementById("result").innerHTML="Awaiting Data"
+
+approveCount=0
+declineCount=0
+
+document.getElementById("yes").innerText=0
+document.getElementById("no").innerText=0
+
+if(chart){
+chart.destroy()
+}
+
+}
+
+</script>
+
+</body>
+</html>
